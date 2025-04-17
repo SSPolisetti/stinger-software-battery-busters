@@ -57,6 +57,9 @@ class GateTask(Node):
     def image_callback(self, msg):
         """Process the camera feed to detect red, green, and yellow buoys."""
         # TODO convert to cv2 format and hsv
+        bgr_img = cv2.imread(msg) 
+        hsv_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2HSV)
+        self.hsv = hsv_img
     
     def imu_callback(self, msg):
         self.imu_result = msg
@@ -76,13 +79,23 @@ class GateTask(Node):
 
     def gate_detection_cv(self):
         # TODO Define color ranges for red, green, and yellow in HSV
+        lower_red = np.array([0, 100, 100]) 
+        upper_red = np.array([10, 255, 255])
+
+        lower_green = np.array([35, 50, 50]) 
+        upper_green = np.array([85, 255, 255])
+
+        lower_yellow = np.array([20, 100, 100]) 
+        upper_yellow = np.array([30, 255, 255]) 
 
         if len(self.hsv) == 0:
             self.get_logger().info("Waitng for frame")
             return [], []
 
         # TODO Create masks
-
+        red_mask = cv2.inRange(self.hsv, lower_red, upper_red) 
+        green_mask = cv2.inRange(self.hsv, lower_green, upper_green)
+        yellow_mask = cv2.inRange(self.hsv, lower_yellow, upper_yellow)
 
         # Find contours for each color
         red_buoy = self.find_circles(red_mask)
